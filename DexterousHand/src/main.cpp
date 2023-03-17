@@ -9,9 +9,10 @@
 #include "print_debug.h"
 
 
-IMU_device IMU_hand(1,0x28);
+//MU_device IMU_hand(1,0x28);
 IMU_device IMU_arm(2,0x29);
 Serial_scan Serial_receive;
+webserial web_debug(IMU_arm);
 
 bool flag = true;
 
@@ -49,9 +50,12 @@ void setup(){
 }
 
 void loop(){
-  uint8_t sys,gyro,accel,mag;
+
+  web_debug.WebSerialprint();
 
   Serial_receive.receive();//シリアル通信から読み込み
+
+  uint8_t sys,gyro,accel,mag;
 
   IMU_arm.getCalibration(&sys,&gyro,&accel,&mag);//キャリブレーションの状態を取得
   S_print("sys",sys);
