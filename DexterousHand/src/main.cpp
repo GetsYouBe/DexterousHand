@@ -9,12 +9,9 @@
 #include "print_debug.h"
 
 
-//MU_device IMU_hand(1,0x28);
-IMU_device IMU_arm(2,0x29);
-Serial_scan Serial_receive;
-webserial web_debug(IMU_arm);
 
-bool flag = true;
+IMU_device IMU_arm(2,0x29);//IMUを扱うインスタンスを生成
+
 
 void setup(){
   Serial.begin(115200);
@@ -51,31 +48,5 @@ void setup(){
 
 void loop(){
 
-  web_debug.WebSerialprint();
-
-  Serial_receive.receive();//シリアル通信から読み込み
-
-  uint8_t sys,gyro,accel,mag;
-
-  IMU_arm.getCalibration(&sys,&gyro,&accel,&mag);//キャリブレーションの状態を取得
-  S_print("sys",sys);
-  S_print("gyro",gyro);
-  S_print("accel",accel);
-  S_print("mag",mag,END);
-
-  if(Serial_receive.get() == 's'){
-    if(sys == 3 && gyro == 3 && accel == 3 &&  mag == 3 && flag){
-      IMU_arm.Save_calib();
-      S_print("calibration is saved",END);
-    }else{
-      S_print("calibration not completed",END);
-    }
-  }
-
-  if(Serial_receive.get() == 'e'){
-      uint8_t buff[22];
-      IMU_arm.get_calib(buff);
-      S_print("sensor_offset",buff,22);
-  }
+  
 }
-
