@@ -14,11 +14,12 @@
 
 int radTostep(double);
 int move_time(int,int,int,int);
+int StepRange_con(int);
 
-SoftwareSerial DebugSerial(11, 10);
+SoftwareSerial DebugSerial(10, 11);
 
 SMS_STS SerialServo;
-Adafruit_BNO055 IMU_arm(2,0x28);//IMUを扱うインスタンスを生成
+Adafruit_BNO055 IMU_arm(55,0x28);//IMUを扱うインスタンスを生成
 Serial_debug debug(DebugSerial);
 
 
@@ -36,11 +37,11 @@ int servo_a = 50;
 bool LED = true;
 
 void setup(){
-  DebugSerial.begin(115200);
+  DebugSerial.begin(4800);
   Serial.begin(1000000);
   SerialServo.pSerial = &Serial;
  
-  DebugSerial.println("start");
+  DebugSerial.write("start");
 
   pinMode(13, OUTPUT);
   
@@ -49,7 +50,7 @@ void setup(){
 
   if(!arm_conection){
     DebugSerial.println("no BNO055(arm) detected");
-    while(1){};
+    while(1){}
   }else{
     IMU_arm.setExtCrystalUse(true);
     DebugSerial.println("IMU_arm setting complete");
@@ -67,35 +68,47 @@ void setup(){
 void loop(){
   digitalWrite(13,LED);
   LED = !LED;
-  posX = SerialServo.ReadPos(1);
-  posZ = SerialServo.ReadPos(2);
-  posY = SerialServo.ReadPos(3);
+  posX = StepRange_con(SerialServo.ReadPos(1));//0 < (step) < 4054
+  posZ = StepRange_con(SerialServo.ReadPos(2));
+  posY = StepRange_con(SerialServo.ReadPos(3));
 
   imu::Quaternion qua_now = IMU_arm.getQuat();
   imu::Quaternion qua_aim(aim_qua_w,aim_qua_x,aim_qua_y,aim_qua_z);
   imu::Quaternion diff = diffQuaterniopn(qua_now,qua_aim);
-  imu::Vector<3> vec = convert(diff);//x-z-y
+  imu::Vector<3> vec = convert(diff);//x-z-y 0 < (rad) < 2pi
 
   debug.WebSerialprint((float)diff.w(),(float)diff.x(),(float)diff.y(),(float)diff.z(),3,3,3,3);
 
-  int dx = radTostep(vec[0]);//オイラー角をサーボのステップ数に変換
-  int dz = radTostep(vec[1]);//これは動作量であって絶対角度ではない
-  int dy = radTostep(vec[2]);
+  vec[0] = RadRange_con(vec[0]);
+  vec[1] = RadRange_con(vec[1]);
+  vec[2] = RadRange_con(vec[2]);
 
-  SerialServo.RegWritePosEx(1,posX+dx,servo_v,servo_a);//サーボを駆動
-  SerialServo.RegWritePosEx(2,posZ+dz,servo_v,servo_a);
-  SerialServo.RegWritePosEx(3,posY+dy,servo_v,servo_a);
+  int dx = radTostep(vec[0]);//オイラー角をサーボのステップ数に変換
+  int dz = radTostep(vec[1]);//これ差分になる絶対角度で、センサーが根元にしかついていないから先端が水平になっていても小さくならない。モーターの目標角度になる。
+  int dy = radTostep(vec[2]);//0 < (step) < 4054
+
+  SerialServo.RegWritePosEx(1,dx,servo_v,servo_a);//サーボを駆動
+  SerialServo.RegWritePosEx(2,dz,servo_v,servo_a);//絶対角度指定
+  SerialServo.RegWritePosEx(3,dy,servo_v,servo_a);
   SerialServo.RegWriteAction();
 
-  delay(  max( move_time(posX+dx,posX,servo_v,servo_a), max(move_time(posZ+dz,posZ,servo_v,servo_a), move_time(posY+dy,posY,servo_v,servo_a) ) )  );//サーボを動作時間待機
-
+  delay(  max( move_time(dx,posX,servo_v,servo_a), max(move_time(dz,posZ,servo_v,servo_a), move_time(dy,posY,servo_v,servo_a) ) )  );//サーボを動作時間待機
   
 }
 
 int radTostep(double rad){
-  return (int)(rad/2 * 3.14) * 4095;
+  return (int)(rad/(2 * 3.14)) * 4095;
 }
 
 int move_time(int Pos,int prePos, int v, int a){
     return ((Pos - prePos)/v) * 1000 + (v/(a*100)) * 1000;
+}
+
+int StepRange_con(int raw){//step
+    return raw-2047;
+}
+
+double RadRange_con(double raw){
+  if(raw <= 3.14) return raw;
+  else return (raw - 3.14) - 3.14;
 }
