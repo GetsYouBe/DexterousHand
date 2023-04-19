@@ -4,6 +4,7 @@
 
 #include <Arduino.h>
 #include <stdint.h>
+#include <SoftwareSerial.h>
 
 //Serial1はシリアルサーボとの通信に使うので、Serialをデバック用にする
 //Serial.begin()の引数でserial1のピンを変更する
@@ -11,13 +12,13 @@
 
 class Serial_debug{
     public:
-        Serial_debug(HardwareSerial &serial);
+        Serial_debug(SoftwareSerial &serial);
         void receive(int &result);
         void WebSerialprint(float qw,float qx,float qy,float qz, uint8_t calib_sys, uint8_t calib_gyro, uint8_t calib_accel, uint8_t calib_mag);//シリアル通信でIMUのパラメータを出力
         void WebSerialprint(float ox,float oy,float oz, uint8_t calib_sys, uint8_t calib_gyro, uint8_t calib_accel, uint8_t calib_mag);
 
     private:
-        HardwareSerial* Serial_pointer;
+        SoftwareSerial* Serial_pointer;
 
 };
 

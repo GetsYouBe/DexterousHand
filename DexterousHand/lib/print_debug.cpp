@@ -1,8 +1,8 @@
 #include <Arduino.h>
 #include "print_debug.h"
+#include <SoftwareSerial.h>
 
-
-Serial_debug::Serial_debug(HardwareSerial& serial){//シリアルのインスタンスのポインターを受け取り、このクラス内からメンバ関数を使えるようにする
+Serial_debug::Serial_debug(SoftwareSerial& serial){//シリアルのインスタンスのポインターを受け取り、このクラス内からメンバ関数を使えるようにする
     Serial_pointer = &serial;
 }
 

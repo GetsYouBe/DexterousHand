@@ -7,7 +7,7 @@
 
 #include <Adafruit_BNO055.h>
 #include <stdint.h>
-#include <EEPROM.h>
+//#include <EEPROM.h>
 #include "address_map.h"
 
 
@@ -16,7 +16,7 @@ Adafrut_BiNO055のクラスを継承して、追加の機能を付けた。
 センサーオフセットの取得、EEPROMへの書込み、読み込み、設定
 setupでEEPROMの初期化が必要
 */
-
+/*
 class IMU_device : public Adafruit_BNO055{
 public:
     using Adafruit_BNO055::Adafruit_BNO055;//コンストラクタは基底クラスのを参照
@@ -29,4 +29,5 @@ private:
     uint8_t calib_buff_S[22];
 };
 
+*/
 #endif

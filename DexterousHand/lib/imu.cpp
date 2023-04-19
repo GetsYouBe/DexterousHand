@@ -1,7 +1,7 @@
 
 #include "imu.h"
 
-
+/*
 int  IMU_device::Save_calib(){
     getSensorOffsets(calib_buff_S);
     EEPROM.writeBytes(address_imu, calib_buff_S,22);
@@ -16,3 +16,4 @@ void IMU_device::Load_calib(){
 void get_calib(uint8_t* buff){
     EEPROM.readBytes(address_imu, buff,22);
 }
+*/

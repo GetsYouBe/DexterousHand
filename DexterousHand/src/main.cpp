@@ -2,13 +2,12 @@
 #include <Adafruit_BNO055.h>
 #include <utility/imumaths.h>
 
-#include <Ticker.h>
-#include <ESP32Servo.h>
 #include <Arduino.h>
 #include <SCServo.h>
 #include "imu.h"
 #include "print_debug.h"
 #include "control.h"
+#include <SoftwareSerial.h>
 
 #define rxPin 16
 #define txPin 17
@@ -16,10 +15,12 @@
 int radTostep(double);
 int move_time(int,int,int,int);
 
+SoftwareSerial DebugSerial(11, 10);
 
 SMS_STS SerialServo;
-IMU_device IMU_arm(2,0x29);//IMUを扱うインスタンスを生成
-Serial_debug debug(Serial);
+Adafruit_BNO055 IMU_arm(2,0x28);//IMUを扱うインスタンスを生成
+Serial_debug debug(DebugSerial);
+
 
 double aim_qua_w=1;
 double aim_qua_x=0;
@@ -32,12 +33,14 @@ int posZ = 90;
 int servo_v = 3400;
 int servo_a = 50;
 
+bool LED = true;
+
 void setup(){
-  Serial.begin(115200);
-  Serial1.begin(1000000,SERIAL_8N1, rxPin, txPin);
-  SerialServo.pSerial = &Serial1;
+  DebugSerial.begin(115200);
+  Serial.begin(1000000);
+  SerialServo.pSerial = &Serial;
  
-  Serial.println("start");
+  DebugSerial.println("start");
 
   pinMode(13, OUTPUT);
   
@@ -45,23 +48,25 @@ void setup(){
   bool arm_conection = IMU_arm.begin();
 
   if(!arm_conection){
-    Serial.println("no BNO055(arm) detected");
+    DebugSerial.println("no BNO055(arm) detected");
     while(1){};
   }else{
     IMU_arm.setExtCrystalUse(true);
-    Serial.println("IMU_arm setting complete");
+    DebugSerial.println("IMU_arm setting complete");
   }
 
   SerialServo.RegWritePosEx(1,2047,3400,50);//初期位置に移動
   SerialServo.RegWritePosEx(2,2047,3400,50);
   SerialServo.RegWritePosEx(3,2047,3400,50);
-  
+  SerialServo.RegWriteAction();
 
   delay(500);
   
 }
 
 void loop(){
+  digitalWrite(13,LED);
+  LED = !LED;
   posX = SerialServo.ReadPos(1);
   posZ = SerialServo.ReadPos(2);
   posY = SerialServo.ReadPos(3);
@@ -80,6 +85,7 @@ void loop(){
   SerialServo.RegWritePosEx(1,posX+dx,servo_v,servo_a);//サーボを駆動
   SerialServo.RegWritePosEx(2,posZ+dz,servo_v,servo_a);
   SerialServo.RegWritePosEx(3,posY+dy,servo_v,servo_a);
+  SerialServo.RegWriteAction();
 
   delay(  max( move_time(posX+dx,posX,servo_v,servo_a), max(move_time(posZ+dz,posZ,servo_v,servo_a), move_time(posY+dy,posY,servo_v,servo_a) ) )  );//サーボを動作時間待機
 
