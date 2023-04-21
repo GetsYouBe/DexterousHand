@@ -10,6 +10,7 @@
 
 imu::Quaternion  diffQuaterniopn(imu::Quaternion A, imu::Quaternion B){//差分を求める
     imu::Quaternion diff;
+    A.normalize();
     diff = A.conjugate() * B;
     diff.normalize();
     return diff;
