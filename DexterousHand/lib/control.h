@@ -74,7 +74,7 @@ imu::Vector<3> convertEuler(imu::Quaternion qua){
         result.y() = atan2(m[0][2],m[0][0]);
     }else{
         result.x() = atan2(-m[1][2],m[2][2]);
-        result.y() = 0;
+        result.y() = 0.0;
     }
     
     return result;//返す
