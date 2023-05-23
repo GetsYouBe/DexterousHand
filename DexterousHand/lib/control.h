@@ -48,7 +48,7 @@ imu::Vector<3> convertEuler(imu::Quaternion qua){
     //回転行列からオイラーに変換
     result.z() = asin(-m[0][1]);
     
-    if(cos(result.z()) != 0){
+    if(cos(result.z()) != 0.0){
         result.x() = atan2(m[2][1],m[1][1]);
         result.y() = atan2(m[0][2],m[0][0]);
     }else{
