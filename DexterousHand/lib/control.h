@@ -17,35 +17,56 @@ imu::Quaternion  diffQuaterniopn(imu::Quaternion A, imu::Quaternion B){//差分�
 }
 
 imu::Vector<3> convertEuler(imu::Quaternion qua){
-    double xx = qua.x() * qua.x();
-    double xy = qua.x() * qua.y();
-    double xz = qua.x() * qua.z();
-    double xw = qua.x() * qua.w();
-
-    double yy = qua.y() * qua.y();
-    double yz = qua.y() * qua.z();
-    double yw = qua.y() * qua.w();
-
-    double zz = qua.z() * qua.z();
-    double zw = qua.z() * qua.w();
-
-    double ww = qua.w() * qua.w();
-
     double m[3][3];//回転行列
     // 回転行列へ変換
-    m[0][0] = 2.0 * (ww + xx) - 1.0;
-    m[0][1] = 2.0 * (xy - zw);
-    m[0][2] = 2.0 * (xz + yw);
-    m[1][0] = 2.0 * (xy + zw);
-    m[1][1] = 2.0 * (ww + yy) - 1.0;
-    m[1][2] = 2.0 * (yz - xw);
-    m[2][0] = 2.0 * (xz - yw);
-    m[2][1] = 2.0 * (yz + xw);
-    m[2][2] = 2.0 * (ww + zz) - 1.0;
-
-    imu::Vector<3> result;//返り値定義
     
-    //回転行列からオイラーに変換
+    double tmp1;
+    double tmp2;
+
+    tmp1 = qua.w() * qua.w();//ww
+    tmp2 = qua.x() * qua.x();//xx
+
+    m[0][0] = 2.0 * (tmp1 + tmp2) - 1.0;//2.0 * (ww + xx) - 1.0;
+
+    tmp2 = qua.y() * qua.y();//yy
+    
+    m[1][1] = 2.0 * (tmp1 + tmp2) - 1.0;//2.0 * (ww + yy) - 1.0;
+
+    tmp2 = qua.z() * qua.z();//zz
+
+    m[2][2] = 2.0 * (tmp1 + tmp2) - 1.0;//2.0 * (ww + zz) - 1.0;
+
+    tmp1 = qua.x() * qua.y();//xy
+    tmp2 = qua.z() * qua.w();//zw
+
+    m[0][1] = 2.0 * (tmp1 - tmp2);//2.0 * (xy - zw);
+    m[1][0] = 2.0 * (tmp1 + tmp2);//2.0 * (xy + zw);
+
+    tmp1 = qua.x() * qua.z();//xz
+    tmp2 = qua.y() * qua.w();//yw
+
+    m[0][2] = 2.0 * (tmp1 + tmp2);//2.0 * (xz + yw);
+    m[2][0] = 2.0 * (tmp1 - tmp2);//2.0 * (xz - yw);
+
+    tmp1 = qua.y() * qua.z();//yz
+    tmp2 = qua.x() * qua.w();//xw
+
+    m[1][2] = 2.0 * (tmp1 - tmp2);//2.0 * (yz - xw);
+    m[2][1] = 2.0 * (tmp1 + tmp2);//2.0 * (yz + xw);
+
+    // m[0][0] = 2.0 * (ww + xx) - 1.0;
+    // m[0][1] = 2.0 * (xy - zw);
+    // m[0][2] = 2.0 * (xz + yw);
+    // m[1][0] = 2.0 * (xy + zw);
+    // m[1][1] = 2.0 * (ww + yy) - 1.0;
+    // m[1][2] = 2.0 * (yz - xw);
+    // m[2][0] = 2.0 * (xz - yw);
+    // m[2][1] = 2.0 * (yz + xw);
+    // m[2][2] = 2.0 * (ww + zz) - 1.0;
+
+    imu::Vector<3> result;//返り値
+    
+    //回転行列からオイラー角に変換　回転順：XZY
     result.z() = asin(-m[0][1]);
     
     if(cos(result.z()) != 0.0){
