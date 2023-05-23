@@ -43,8 +43,20 @@ imu::Vector<3> convertEuler(imu::Quaternion qua){
     m[2][1] = 2.0 * (yz + xw);
     m[2][2] = 2.0 * (ww + zz) - 1.0;
 
-    imu::Vector<3> result;
-    return result;
+    imu::Vector<3> result;//返り値定義
+    
+    //回転行列からオイラーに変換
+    result.z() = asin(-m[0][1]);
+    
+    if(acos(result.z()) != 0){
+        result.x() = atan2(m[2][1],m[1][1]);
+        result.y() = atan2(m[0][2],m[0][0]);
+    }else{
+        result.x() = atan2(-m[1][2],m[2][2]);
+        result.y() = 0;
+    }
+    
+    return result;//返す
 }
 
 imu::Vector<3> convert(imu::Quaternion q){
