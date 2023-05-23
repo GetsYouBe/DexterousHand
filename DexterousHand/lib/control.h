@@ -16,6 +16,37 @@ imu::Quaternion  diffQuaterniopn(imu::Quaternion A, imu::Quaternion B){//差分�
     return diff;
 }
 
+imu::Vector<3> convertEuler(imu::Quaternion qua){
+    double xx = qua.x() * qua.x();
+    double xy = qua.x() * qua.y();
+    double xz = qua.x() * qua.z();
+    double xw = qua.x() * qua.w();
+
+    double yy = qua.y() * qua.y();
+    double yz = qua.y() * qua.z();
+    double yw = qua.y() * qua.w();
+
+    double zz = qua.z() * qua.z();
+    double zw = qua.z() * qua.w();
+
+    double ww = qua.w() * qua.w();
+
+    double m[3][3];//回転行列
+    // 回転行列へ変換
+    m[0][0] = 2.0 * (ww + xx) - 1.0;
+    m[0][1] = 2.0 * (xy - zw);
+    m[0][2] = 2.0 * (xz + yw);
+    m[1][0] = 2.0 * (xy + zw);
+    m[1][1] = 2.0 * (ww + yy) - 1.0;
+    m[1][2] = 2.0 * (yz - xw);
+    m[2][0] = 2.0 * (xz - yw);
+    m[2][1] = 2.0 * (yz + xw);
+    m[2][2] = 2.0 * (ww + zz) - 1.0;
+
+    imu::Vector<3> result;
+    return result;
+}
+
 imu::Vector<3> convert(imu::Quaternion q){
     imu::Vector<3> result;
 
