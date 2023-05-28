@@ -21,7 +21,3 @@ double RadRange_con(double raw){
   if(raw <= 3.14) return raw;
   else return (raw - 3.14) - 3.14;
 }
-
-void wait(double time){
-    
-}

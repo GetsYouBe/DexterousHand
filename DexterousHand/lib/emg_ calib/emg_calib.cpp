@@ -16,9 +16,6 @@ void EMG_CALIB::sampling(float& x){
 }
 
 void EMG_CALIB::threshold_calib(float& j1to2, float& j2to3){
-    MsTimer2::stop();
-
-
     float low=0;
     float mid=0;
     float high=0;
@@ -42,9 +39,4 @@ void EMG_CALIB::threshold_calib(float& j1to2, float& j2to3){
 
     softSerial->println("completed!");
     delay(1000);
-
-    MsTimer2::start();
-
-
-
 }

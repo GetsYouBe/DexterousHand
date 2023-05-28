@@ -8,7 +8,7 @@
 #include "print_debug.h"
 #include "control.h"
 #include <SoftwareSerial.h>
-#include <MsTimer2.h>
+//#include <MsTimer2.h>
 #include "emg_calib.h"
 #include "utility.h"
 #include "CountTimer.h"
@@ -55,27 +55,14 @@ float judge_0to1=2.72;
 float judge_1to2=3.43;
 float gain_i = 10; //n/10 (0 <= n <= 10)
 
-void Interrupt(){
-  if(counter>=loop_count){//測定値を積分か平均をとる
-    result_i=sum/loop_count;
-    //Serial.println(result,3);
-    counter=0;
-    sum=0;
-    result = result_i * (gain_i/10) + (analogRead(EMG)/1023.0 * 5.0) * ((10-gain_i)/10);
-  }else{
-    sum+=analogRead(EMG)/1023.0 * 5.0;//5V換算
-    counter++;
-  }
-}
-
-  
+void Interrupt();
 
 void setup(){
   DebugSerial.begin(4800);
   Serial.begin(1000000);
   SerialServo.pSerial = &Serial;
  
-  DebugSerial.write("start");
+  DebugSerial.write("sta");
 
   pinMode(13, OUTPUT);
   
@@ -200,7 +187,7 @@ void loop(){
       
 
 
-      MsTimer2::stop();//割り込み止める
+      //MsTimer2::stop();//割り込み止める
       SerialServo.RegWritePosEx(1,dx,servo_v,servo_a);//手首サーボを駆動
       SerialServo.RegWritePosEx(2,4054-dz,servo_v,servo_a);//絶対角度指定
       SerialServo.RegWritePosEx(3,4054-dy,servo_v,servo_a);
@@ -209,7 +196,7 @@ void loop(){
       SerialServo.RegWritePosEx(5,1400,servo_v,servo_a);
 
       SerialServo.RegWriteAction();
-      MsTimer2::start();
+      //MsTimer2::start();
 
 
       wait_time = max( move_time(dx,posX,servo_v,servo_a), max(move_time(dz,posZ,servo_v,servo_a), move_time(dy,posY,servo_v,servo_a) ) );//サーボを動作時間待機
@@ -224,5 +211,18 @@ void loop(){
   
   default:
     break;
+  }
+}
+
+void Interrupt(){
+  if(counter>=loop_count){//測定値を積分か平均をとる
+    result_i=sum/loop_count;
+    //Serial.println(result,3);
+    counter=0;
+    sum=0;
+    result = result_i * (gain_i/10) + (analogRead(EMG)/1023.0 * 5.0) * ((10-gain_i)/10);
+  }else{
+    sum+=analogRead(EMG)/1023.0 * 5.0;//5V換算
+    counter++;
   }
 }

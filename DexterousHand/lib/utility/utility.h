@@ -11,6 +11,4 @@ int StepRange_res(int raw);
 
 double RadRange_con(double raw);
 
-void wait(double);
-
 #endif
