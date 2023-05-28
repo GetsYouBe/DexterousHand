@@ -94,7 +94,7 @@ imu::Vector<3> convert(imu::Quaternion q){
     if(m01 > 1) m01 = 1.0;
     else if(m01 < -1) m01 = -1.0;
 
-    result.z() = asin(-m01);
+    result.z() = asin(-m01);//ここゴミカスコード　死ぬまで反省します
 
     if(result.z() != 0){
         result.x() = atan2(m21,m11);

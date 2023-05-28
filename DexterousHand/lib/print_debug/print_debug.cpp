@@ -12,6 +12,17 @@ void Serial_debug::receive(int &result){
     }
 }
 
+String Serial_debug::read_Serial(){
+
+   if(Serial.available() > 0){
+    String receive = Serial_pointer->readString();
+    receive.trim();
+    return receive;
+   }
+
+   return "nothing" ;
+}
+
 //adafruit のweb3Dviewerでオイラー角とクォータニオンを表示するための関数
 
 void Serial_debug::WebSerialprint(float qw,float qx,float qy,float qz, uint8_t calib_sys, uint8_t calib_gyro, uint8_t calib_accel, uint8_t calib_mag){//クォータニオンとセンサーのキャリブレーションパラメータを引数にとり、adaruitのweb3Dviewerに対応するよう出力
