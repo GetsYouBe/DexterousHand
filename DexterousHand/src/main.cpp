@@ -100,7 +100,7 @@ void loop(){
   DebugSerial.println("");
   String SoftSerial_str = debug.read_Serial();
 
-  if(SoftSerial_str == "calib"){//シリアル通信で何かを受信したら、閾値のキャリブレーションを起動する
+  if(SoftSerial_str == "calib"){//シリアル通信で""calib""を受信したら、閾値のキャリブレーションを起動する
     myemg.threshold_calib(judge_0to1,judge_1to2);
     DebugSerial.readString();//受信バッファをクリア
     delay(1000);
@@ -158,7 +158,7 @@ void loop(){
       imu::Quaternion qua_now = IMU_arm.getQuat();//現在のクォータニオンを取得
       
       imu::Quaternion diff = diffQuaterniopn(qua_aim,qua_now);
-      imu::Vector<3> vec = convertEuler(diff);//x-z-y 0 < (rad) < 2pi
+      imu::Vector<3> vec = convertEuler(diff,EulerOrder::XZY);//x-z-y 0 < (rad) < 2pi
 
       //debug.WebSerialprint((float)diff.w(),(float)diff.x(),(float)diff.y(),(float)diff.z(),3,3,3,3);
 

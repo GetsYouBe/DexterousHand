@@ -3,9 +3,16 @@
 
 #include <Arduino.h>
 #include <Adafruit_BNO055.h>
-//#include <cmath>
 
-#define XZY 2
+
+enum class EulerOrder {
+  XYZ,
+  XZY,
+  YXZ,
+  YZX,
+  ZXY,
+  ZYX
+};
 
 
 imu::Quaternion  diffQuaterniopn(imu::Quaternion A, imu::Quaternion B){//差分を求める
@@ -16,7 +23,7 @@ imu::Quaternion  diffQuaterniopn(imu::Quaternion A, imu::Quaternion B){//差分�
     return diff;
 }
 
-imu::Vector<3> convertEuler(imu::Quaternion qua){
+imu::Vector<3> convertEuler(imu::Quaternion qua,EulerOrder order){
     double m[3][3];//回転行列
     // 回転行列へ変換
     
@@ -66,19 +73,54 @@ imu::Vector<3> convertEuler(imu::Quaternion qua){
 
     imu::Vector<3> result;//返り値
     
-    //回転行列からオイラー角に変換　回転順：XZY
-    result.z() = asin(-m[0][1]);
+    switch (order)
+    {
+    case EulerOrder::XYZ:
+        result.y() = asin(m[0][2]);
+
+        if(cos(result.y()) != 0.0){
+            result.x() = atan2(-m[1][2],m[2][2]);
+            result.z() = atan2(-m[0][1],m[0][0]);
+        }else{
+            result.x() = atan2(m[2][1],m[1][1]);
+            result.z() = 0.0;
+        }
+        break;
     
-    if(cos(result.z()) != 0.0){
-        result.x() = atan2(m[2][1],m[1][1]);
-        result.y() = atan2(m[0][2],m[0][0]);
-    }else{
-        result.x() = atan2(-m[1][2],m[2][2]);
-        result.y() = 0.0;
+    case EulerOrder::XZY:
+        
+        result.z() = asin(-m[0][1]);
+        
+        if(cos(result.z()) != 0.0){
+            result.x() = atan2(m[2][1],m[1][1]);
+            result.y() = atan2(m[0][2],m[0][0]);
+        }else{
+            result.x() = atan2(-m[1][2],m[2][2]);
+            result.y() = 0.0;
+        }
+
+        break;
+    
+    case EulerOrder::YZX:
+
+        result.z() = asin(m[1][0]);
+
+        if(cos(result.z()) != 0.0){
+            result.x() = atan2(-m[1][2],m[1][1]);
+            result.y() = atan2(-m[2][0],m[0][0]);
+        }else{
+            result.x() = 0.0;
+            result.y() = atan2(m[0][2],m[2][2]);
+        }
+    default:
+        break;
     }
-    
-    return result;//返す
+
+    return result;
 }
+
+
+
 
 imu::Vector<3> convert(imu::Quaternion q){
     imu::Vector<3> result;
@@ -94,9 +136,9 @@ imu::Vector<3> convert(imu::Quaternion q){
     if(m01 > 1) m01 = 1.0;
     else if(m01 < -1) m01 = -1.0;
 
-    result.z() = asin(-m01);//ここゴミカスコード　死ぬまで反省します
+    result.z() = asin(-m01);
 
-    if(result.z() != 0){
+    if(result.z() != 0){//ここゴミカスコード　死ぬまで反省します
         result.x() = atan2(m21,m11);
         result.y() = atan2(m02,m00);
     }else{
