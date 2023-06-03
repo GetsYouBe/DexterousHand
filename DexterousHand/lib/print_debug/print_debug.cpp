@@ -2,8 +2,9 @@
 #include "print_debug.h"
 #include <SoftwareSerial.h>
 
-Serial_debug::Serial_debug(SoftwareSerial& serial){//シリアルのインスタンスのポインターを受け取り、このクラス内からメンバ関数を使えるようにする
+Serial_debug::Serial_debug(HardwareSerial& serial){//シリアルのインスタンスのポインターを受け取り、このクラス内からメンバ関数を使えるようにする
     Serial_pointer = &serial;
+    Timer_launch = false;
 }
 
 void Serial_debug::receive(int &result){
@@ -21,6 +22,19 @@ String Serial_debug::read_Serial(){
    }
 
    return "nothing" ;
+}
+
+void Serial_debug::TimerDebug(String tag){
+  if(Timer_launch){
+    Serial_pointer->print(tag);
+    Serial_pointer->print(":");
+    Serial_pointer->print(millis() - timer);
+  }else{
+    Timer_launch = true;
+    Serial_pointer->print("TimerDebugStart");
+  }
+  Serial2.print(" ");
+  timer = millis();
 }
 
 //adafruit のweb3Dviewerでオイラー角とクォータニオンを表示するための関数

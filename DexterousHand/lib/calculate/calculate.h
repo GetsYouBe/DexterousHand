@@ -61,6 +61,12 @@ imu::Vector<3> convertEuler(imu::Quaternion qua,EulerOrder order){
     m[1][2] = 2.0 * (tmp1 - tmp2);//2.0 * (yz - xw);
     m[2][1] = 2.0 * (tmp1 + tmp2);//2.0 * (yz + xw);
 
+    for(int j = 0; j < 2; j++){//列->
+        for (int i = 0; i < 3; i++){//行^
+            m[i][j] =  m[(i+1)%3][((j-2)+3)%3] * m[(i+2)%3][((j-1)+3)%3] - m[(i+2)%3][((j-2)+3)%3] * m[(i+1)%3][((j-1)+3)%3];
+        }
+    }
+
     // m[0][0] = 2.0 * (ww + xx) - 1.0;
     // m[0][1] = 2.0 * (xy - zw);
     // m[0][2] = 2.0 * (xz + yw);

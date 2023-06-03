@@ -8,12 +8,12 @@
 
 class EMG_CALIB{
     public:
-    EMG_CALIB(SoftwareSerial& s);
+    EMG_CALIB(HardwareSerial& s);
     void threshold_calib(float& j1to2, float& j2to3);
     void sampling(float& x);
 
     private:
-    SoftwareSerial* softSerial;
+    HardwareSerial* softSerial;
 };
 
 

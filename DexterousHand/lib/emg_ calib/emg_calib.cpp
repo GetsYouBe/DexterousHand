@@ -1,7 +1,7 @@
 #include "emg_calib.h"
 
 
-EMG_CALIB::EMG_CALIB(SoftwareSerial& s){
+EMG_CALIB::EMG_CALIB(HardwareSerial& s){
     softSerial = &s;
 }
 

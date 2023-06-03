@@ -6,9 +6,8 @@
 #include <SCServo.h>
 #include "imu.h"
 #include "print_debug.h"
-#include "control.h"
+#include "calculate.h"
 #include <SoftwareSerial.h>
-//#include <MsTimer2.h>
 #include "emg_calib.h"
 #include "utility.h"
 #include "CountTimer.h"
@@ -18,14 +17,12 @@
 
 
 
-
-
-SoftwareSerial DebugSerial(10, 11);
-EMG_CALIB myemg(DebugSerial);
+HardwareSerial SerialForServo(PC_11,PC_10);
+EMG_CALIB myemg(Serial2);
 
 SMS_STS SerialServo;
 Adafruit_BNO055 IMU_arm(55,0x28);//IMUを扱うインスタンスを生成
-Serial_debug debug(DebugSerial);
+Serial_debug debug(Serial2);
 CountTimer Ctimer;
 
 double aim_qua_w=1;//目標クォータニオン
@@ -37,8 +34,8 @@ imu::Quaternion qua_aim(aim_qua_w,aim_qua_x,aim_qua_y,aim_qua_z);
 int posX = 90;
 int posY = 90;
 int posZ = 90;
-int servo_v = 3400;
-int servo_a = 50;
+int servo_v = 3600;
+int servo_a = 80;
 int mode = 0;// 0:開＋OFF　１：閉＋OFF　２閉＋ON
 unsigned long wait_time = 0;
 
@@ -58,11 +55,13 @@ float gain_i = 10; //n/10 (0 <= n <= 10)
 void Interrupt();
 
 void setup(){
-  DebugSerial.begin(4800);
-  Serial.begin(1000000);
-  SerialServo.pSerial = &Serial;
- 
-  DebugSerial.write("sta");
+  Serial2.begin(115200);
+  SerialForServo.begin(1000000);
+  SerialServo.pSerial = &SerialForServo;
+  
+  while(!Serial2) delay(100);//シリアル通信の確立まで待機
+  
+  Serial2.write("start");
 
   pinMode(13, OUTPUT);
   
@@ -70,18 +69,30 @@ void setup(){
   bool arm_conection = IMU_arm.begin();
 
   if(!arm_conection){
-    DebugSerial.println("no BNO055(arm) detected");
+    Serial2.println("no BNO055(arm) detected");
     while(1){}
   }else{
     IMU_arm.setExtCrystalUse(true);
-    DebugSerial.println("IMU_arm setting complete");
+    Serial2.println("IMU_arm setting complete");
   }
 
   IMU_arm.setAxisRemap(Adafruit_BNO055::REMAP_CONFIG_P2);
   IMU_arm.setAxisSign(Adafruit_BNO055::REMAP_SIGN_P2);
+  
+  uint8_t mag_calib;
+  uint8_t gyro_calib;
+  uint8_t sys_calib;
+  uint8_t accel_calib;
+  
+  do
+  {
+    Serial2.print("calibrating.........");
+    Serial2.print(mag_calib);
+    Serial2.println("of3");
+    IMU_arm.getCalibration(&sys_calib,&gyro_calib,&accel_calib,&mag_calib);
+  } while (mag_calib != 3);
 
-  /*MsTimer2::set(10,Interrupt);
-  MsTimer2::start();*/
+  while (!SerialForServo) delay(1);
 
   SerialServo.RegWritePosEx(1,2047,3400,50);//初期位置に移動
   SerialServo.RegWritePosEx(2,2047,3400,50);
@@ -93,16 +104,21 @@ void setup(){
 }
 
 void loop(){
-  DebugSerial.print("mode:");//動作モード切り替え
-  DebugSerial.print(mode);
-  DebugSerial.print("EMG:");
-  DebugSerial.print(result);
-  DebugSerial.println("");
+  while (!Serial2 || !SerialForServo){delay(10);digitalWrite(13,HIGH);}//通信確立まで待機
+  digitalWrite(13,LOW);
+  
+  Serial2.print("mode:");//debug
+  Serial2.print(mode);
+  Serial2.print(" ");
+  Serial2.print("EMG:");
+  Serial2.print(result);
+  Serial2.print(" ");
+  
   String SoftSerial_str = debug.read_Serial();
 
   if(SoftSerial_str == "calib"){//シリアル通信で""calib""を受信したら、閾値のキャリブレーションを起動する
     myemg.threshold_calib(judge_0to1,judge_1to2);
-    DebugSerial.readString();//受信バッファをクリア
+    Serial2.readString();//受信バッファをクリア
     delay(1000);
   }
 
@@ -138,9 +154,9 @@ void loop(){
     qua_aim = IMU_arm.getQuat();//目標クォータニオンを取得
 
     if(result < judge_0to1){//もし閾値より筋電が低くなっていたらmodeを変える
-    mode = 2;
-    }else if(judge_1to2 <= result){//手を閉じて水平制御ON
     mode = 0;
+    }else if(judge_1to2 <= result){//手を閉じて水平制御ON
+    mode = 2;
     }
 
   break;} 
@@ -155,11 +171,19 @@ void loop(){
       posZ = StepRange_con(SerialServo.ReadPos(2));
       posY = StepRange_con(SerialServo.ReadPos(3));
 
+      debug.TimerDebug("GetPos");
+
       imu::Quaternion qua_now = IMU_arm.getQuat();//現在のクォータニオンを取得
       
+      debug.TimerDebug("GetQua");
+
       imu::Quaternion diff = diffQuaterniopn(qua_aim,qua_now);
+
+      debug.TimerDebug("GetDiff");
+
       imu::Vector<3> vec = convertEuler(diff,EulerOrder::XZY);//x-z-y 0 < (rad) < 2pi
 
+      debug.TimerDebug("Convert");
       //debug.WebSerialprint((float)diff.w(),(float)diff.x(),(float)diff.y(),(float)diff.z(),3,3,3,3);
 
       vec.x() = RadRange_con(vec.x());// -pi < rad < pi
@@ -177,29 +201,37 @@ void loop(){
       dy = constrain(StepRange_res(dy),1500,2700);// 0 < step < 4054
       
     
-      /*
-      DebugSerial.print(dx);
-      DebugSerial.print(",");
-      DebugSerial.print(dz);
-      DebugSerial.print(",");
-      DebugSerial.println(dy);
-      */
-      
+      Serial2.print("dx:");
+      Serial2.print(dx);
+      Serial2.print(" ");
+      Serial2.print("dz:");
+      Serial2.print(dz);
+      Serial2.print(" ");
+      Serial2.print("dy:");
+      Serial2.print(dy);
+      Serial2.print(" ");
 
+      debug.TimerDebug("getMovement");
 
-      //MsTimer2::stop();//割り込み止める
+      //MsTimer2::stop();//割り込み止める2
       SerialServo.RegWritePosEx(1,dx,servo_v,servo_a);//手首サーボを駆動
       SerialServo.RegWritePosEx(2,4054-dz,servo_v,servo_a);//絶対角度指定
       SerialServo.RegWritePosEx(3,4054-dy,servo_v,servo_a);
-
+      /*
       SerialServo.RegWritePosEx(4,2600,servo_v,servo_a);//指を閉じる
       SerialServo.RegWritePosEx(5,1400,servo_v,servo_a);
-
+      */
+     
       SerialServo.RegWriteAction();
-      //MsTimer2::start();
 
+      debug.TimerDebug("Send");
+      //wait_time = max( move_time(dx,posX,servo_v,servo_a), max(move_time(dz,posZ,servo_v,servo_a), move_time(dy,posY,servo_v,servo_a) ) );//サーボを動作時間待機
 
-      wait_time = max( move_time(dx,posX,servo_v,servo_a), max(move_time(dz,posZ,servo_v,servo_a), move_time(dy,posY,servo_v,servo_a) ) );//サーボを動作時間待機
+      Serial2.print("wait_time:");
+      Serial2.print(wait_time);
+      Serial2.print(" ");
+
+      wait_time = 0;
       Ctimer.wait(&wait_time);
     }
 
@@ -212,12 +244,13 @@ void loop(){
   default:
     break;
   }
+  Serial2.println("");
 }
 
 void Interrupt(){
   if(counter>=loop_count){//測定値を積分か平均をとる
     result_i=sum/loop_count;
-    //Serial.println(result,3);
+    //Serial2.println(result,3);
     counter=0;
     sum=0;
     result = result_i * (gain_i/10) + (analogRead(EMG)/1023.0 * 5.0) * ((10-gain_i)/10);

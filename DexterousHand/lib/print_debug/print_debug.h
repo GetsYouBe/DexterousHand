@@ -12,14 +12,17 @@
 
 class Serial_debug{
     public:
-        Serial_debug(SoftwareSerial &serial);
+        Serial_debug(HardwareSerial &serial);
         void receive(int &result);
         void WebSerialprint(float qw,float qx,float qy,float qz, uint8_t calib_sys, uint8_t calib_gyro, uint8_t calib_accel, uint8_t calib_mag);//シリアル通信でIMUのパラメータを出力
         void WebSerialprint(float ox,float oy,float oz, uint8_t calib_sys, uint8_t calib_gyro, uint8_t calib_accel, uint8_t calib_mag);
+        void TimerDebug(String tag);
         String read_Serial();
 
     private:
-        SoftwareSerial* Serial_pointer;
+        HardwareSerial* Serial_pointer;
+        double timer;
+        bool Timer_launch;
 
 };
 

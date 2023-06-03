@@ -1,4 +1,6 @@
 #include "utility.h"
+#include <Arduino.h>
+
 
 int RadToStep(double rad){
   float x = (rad/(2 * 3.14)) * 4095;
@@ -6,7 +8,7 @@ int RadToStep(double rad){
 }
 
 int move_time(int Pos,int prePos, int v, int a){
-    return ((Pos - prePos)/v) * 1000 + (v/(a*100)) * 1000;
+    return (float)abs(Pos - prePos)/v * 1000 + (float)v/(a*100) * 1000;
 }
 
 int StepRange_con(int raw){//step
