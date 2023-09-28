@@ -4,10 +4,11 @@
 
 #include <Arduino.h>
 #include <SCServo.h>
+#include <SoftwareSerial.h>
+
 #include "imu.h"
 #include "print_debug.h"
 #include "calculate.h"
-#include <SoftwareSerial.h>
 #include "emg_calib.h"
 #include "utility.h"
 #include "CountTimer.h"
@@ -67,7 +68,7 @@ float judge_1to2=2.3;
 float judge_0to2=3.1;
 float n12 = 5.0;
 float n23 = 5.0;
-float n13 = 7.0
+float n13 = 7.0;
 float gain_i = 10; //n/10 (0 <= n <= 10)
 EulerOrder axisOrder = EulerOrder::XYZ;
 
@@ -171,7 +172,9 @@ void loop(){
     Serial2.print("judge_0to1 : ");
     Serial2.print(judge_0to1);
     Serial2.print("judge_1to2 : ");
-    Serial2.print(judge_0to1);
+    Serial2.print(judge_1to2);
+    Serial2.print("judge_0to2 : ");
+    Serial2.print(judge_0to2);
     Serial2.readString();
     delay(1000);
   }
@@ -185,9 +188,9 @@ void loop(){
   }else if(SoftSerial_str == "0"){
     result = 0;
   }else if(SoftSerial_str == "n+"){
-    if(n13  =< 9) n13++;
+    if(n13  <= 9) n13++;
   }else if(SoftSerial_str == "n-"){
-    if(n13 => 1) n13--;
+    if(n13 >= 1) n13--;
   }
 
   switch (mode)
@@ -299,7 +302,7 @@ void loop(){
     Serial2.print(wait_time);
     Serial2.print(" ");
     */
-    wait_time = 10;
+    wait_time = 5;
     Ctimer.wait(&wait_time);
 
     if(jump_case1){
@@ -335,6 +338,7 @@ void Interrupt(){
     counter++;
   }
 }
+
 void CloseHand(){
   Gripload_L = SerialServo.ReadLoad(5);
   Gripload_R = SerialServo.ReadLoad(4);
