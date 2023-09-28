@@ -9,7 +9,7 @@
 class EMG_CALIB{
     public:
     EMG_CALIB(HardwareSerial& s);
-    void threshold_calib(float& j1to2, float& j2to3);
+    void threshold_calib(float& j1to2, float& j2to3, float& j1to3, float& n12, float& n23, float& n13);
     void sampling(float& x);
 
     private:

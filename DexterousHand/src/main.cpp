@@ -65,6 +65,9 @@ volatile const float loop_count=1.0;
 float judge_0to1=1.8;
 float judge_1to2=2.3;
 float judge_0to2=3.1;
+float n12 = 5.0;
+float n23 = 5.0;
+float n13 = 7.0
 float gain_i = 10; //n/10 (0 <= n <= 10)
 EulerOrder axisOrder = EulerOrder::XYZ;
 
@@ -159,7 +162,7 @@ void loop(){
   String SoftSerial_str = debug.read_Serial();
 
   if(SoftSerial_str == "calib"){//シリアル通信で""calib""を受信したら、閾値のキャリブレーションを起動する
-    myemg.threshold_calib(judge_0to1,judge_1to2);
+    myemg.threshold_calib(judge_0to1, judge_1to2, judge_0to2, n12, n23, n13);
     Serial2.readString();//受信バッファをクリア
     delay(1000);
   }
@@ -181,6 +184,10 @@ void loop(){
     result = judge_0to2 + 0.1;
   }else if(SoftSerial_str == "0"){
     result = 0;
+  }else if(SoftSerial_str == "n+"){
+    if(n13  =< 9) n13++;
+  }else if(SoftSerial_str == "n-"){
+    if(n13 => 1) n13--;
   }
 
   switch (mode)

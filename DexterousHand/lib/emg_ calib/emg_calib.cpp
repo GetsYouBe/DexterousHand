@@ -15,7 +15,7 @@ void EMG_CALIB::sampling(float& x){
     x /= 100.0;
 }
 
-void EMG_CALIB::threshold_calib(float& j1to2, float& j2to3){
+void EMG_CALIB::threshold_calib(float& j1to2, float& j2to3, float& j1to3, float& n12, float& n23, float& n13){
     float low=0;
     float mid=0;
     float high=0;
@@ -34,9 +34,10 @@ void EMG_CALIB::threshold_calib(float& j1to2, float& j2to3){
     sampling(high);
     delay(1000);
 
-    j1to2 = (low + mid)/2;
-    j2to3 = (mid + high)/2;
-
+    j1to2 = ( (10 - n12) * low + n12 * mid ) / 10.0;
+    j2to3 = ( (10 - n23) * mid + n23 * high ) / 10.0;
+    j1to3 = ( (10 - n13) * low + n13 * high ) / 10.0;
+    
     softSerial->println("completed!");
     delay(1000);
 }
