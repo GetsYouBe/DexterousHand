@@ -1,80 +1,80 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
-#include <utility/imumaths.h>
+#include <utility/imumaths.h>//IMUのライブラリ
 
 #include <Arduino.h>
 #include <SCServo.h>
-#include <SoftwareSerial.h>
+#include <SoftwareSerial.h>//シリアルサーボとarduinoのライブラリ
 
 #include "imu.h"
 #include "print_debug.h"
 #include "calculate.h"
 #include "emg_calib.h"
 #include "utility.h"
-#include "CountTimer.h"
+#include "CountTimer.h"//オリジナルライブラリ
 
 #define rxPin 16
-#define txPin 17
+#define txPin 17//ソフトウェアシリアルで使う予定だったピン
 
-#define GripStrength 150
-#define GripPosLimit 300
-#define GripDefaultPos 0
+#define GripStrength 150//握力閾値
+#define GripPosLimit 300//指の位置閾値
+#define GripDefaultPos 0//指の初期位置
 
-#define jump_case1 true
+#define jump_case1 true//筋電での動作切り替えで、case1(指閉じて水平制御OFF)を飛ばすcase0-case2だけにする
 
 
-HardwareSerial SerialForServo(PC_11,PC_10);
+HardwareSerial SerialForServo(PC_11,PC_10);//シリアルサーボ用のシリアル通信
 EMG_CALIB myemg(Serial2);
 
-SMS_STS SerialServo;
+SMS_STS SerialServo;//シリアルサーボのインスタンス
 Adafruit_BNO055 IMU_arm(55,0x28);//IMUを扱うインスタンスを生成
 Serial_debug debug(Serial2);
 CountTimer Ctimer;
 
-double aim_qua_w=1;//目標クォータニオン
+double aim_qua_w=1;//目標クォータニオンの各要素
 double aim_qua_x=0;
 double aim_qua_y=0;
 double aim_qua_z=0;
-imu::Quaternion qua_aim(aim_qua_w,aim_qua_x,aim_qua_y,aim_qua_z);
+imu::Quaternion qua_aim(aim_qua_w,aim_qua_x,aim_qua_y,aim_qua_z);//目標クォータニオン生成
 
-int posX = 90;
+int posX = 90;//モーター初期位置
 int posY = 90;
 int posZ = 90;
-int STS3032_v = 3600;
-int STS3032_a = 80;
+int STS3032_v = 3600;//モーター速度
+int STS3032_a = 80;//モーター加速度
 int STS3215_v = 3600;
 int STS3215_a = 200;
  
 
 int mode = 0;// 0:開＋OFF　１：閉＋OFF　２閉＋ON
-int Gripload_L;//ID 5 +
+int Gripload_L;//ID 5 +　モーターにかかる負荷の大きさ 向きに注意
 int Gripload_R;//ID 4 -
-int Grippos_R = 0;
+int Grippos_R = 0;//指の角度
 int Grippos_L = 0;
 int GripSpeed = 10;
-unsigned long wait_time = 0;
+unsigned long wait_time = 0;//ループ周期調整用
 
 bool LED = true;
 
 
 
-volatile int counter=0;
+volatile int counter=0;//　筋電関連
 volatile float result_i=0;
 volatile float result=0;
 volatile float sum=0;
 volatile const float loop_count=1.0;
-float judge_0to1=1.8;
+float judge_0to1=1.8;//筋電閾値
 float judge_1to2=2.3;
 float judge_0to2=3.1;
-float n12 = 5.0;
+float n12 = 5.0;//閾値設定のパラメータ
 float n23 = 5.0;
 float n13 = 7.0;
 float gain_i = 10; //n/10 (0 <= n <= 10)
-EulerOrder axisOrder = EulerOrder::XYZ;
+EulerOrder axisOrder = EulerOrder::XYZ;//関節の座標系指定
 
-void Interrupt();
+void Interrupt();//割り込んで筋電位取得(使ってない)
 
-void CloseHand();
+void CloseHand();//手を閉じる
 
 void OpenHand();
 
@@ -83,7 +83,7 @@ void setup(){
   SerialForServo.begin(1000000);
   SerialServo.pSerial = &SerialForServo;
   
-  while(!Serial2) delay(100);//シリアル通信の確立まで待機
+  while(!Serial2) delay(100);//シリアル通信の確立まで待機（Arduino純正ボード以外では必須）
   
   Serial2.write("start");
 
@@ -107,7 +107,7 @@ void setup(){
   uint8_t sys_calib;
   uint8_t accel_calib;
   
-  do
+  do//IMUのコンパスの初期化（これを待たずに制御始めると途中で角度が大きく変動して暴走）
   {
     Serial2.print("calibrating.........");
     Serial2.print(mag_calib);
@@ -126,7 +126,7 @@ void setup(){
 
   delay(500);
 
-  IMU_arm.setAxisRemap(Adafruit_BNO055::REMAP_CONFIG_P3);
+  IMU_arm.setAxisRemap(Adafruit_BNO055::REMAP_CONFIG_P3);//IMUの軸、座標設定
   IMU_arm.setAxisSign(Adafruit_BNO055::REMAP_SIGN_P3);
 
   debug.StopDebug();
