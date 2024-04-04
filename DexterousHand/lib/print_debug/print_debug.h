@@ -4,8 +4,6 @@
 
 #include <Arduino.h>
 #include <stdint.h>
-#include <SoftwareSerial.h>
-
 //Serial1はシリアルサーボとの通信に使うので、Serialをデバック用にする
 //Serial.begin()の引数でserial1のピンを変更する
 //通信にteratermとか必要かも

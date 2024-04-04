@@ -1,7 +1,6 @@
 #ifndef _EMG_CALIB_
 #define _EMG_CALIB_
 #include <Arduino.h>
-#include <SoftwareSerial.h>
 
 #define EMG 1
 

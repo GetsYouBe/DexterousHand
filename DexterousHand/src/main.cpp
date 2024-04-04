@@ -21,7 +21,7 @@ HardwareSerial SerialForServo(PC_11,PC_10);
 EMG_CALIB myemg(Serial2);
 
 SMS_STS SerialServo;
-Adafruit_BNO055 IMU_arm(55,0x28);//IMUを扱うインスタンスを生成
+Adafruit_BNO055 IMU_arm(55,0x29);//IMUを扱うインスタンスを生成
 Serial_debug debug(Serial2);
 CountTimer Ctimer;
 
