@@ -20,6 +20,8 @@
 #define GripPosLimit 300//指の位置閾値
 #define GripDefaultPos 0//指の初期位置
 
+#define EMG 1
+
 #define jump_case1 true//筋電での動作切り替えで、case1(指閉じて水平制御OFF)を飛ばすcase0-case2だけにする
 
 

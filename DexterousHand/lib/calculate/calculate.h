@@ -14,8 +14,15 @@ enum class EulerOrder {
   ZYX
 };
 
-
+/**
+    *@fn
+    *@brief QuarternionAを基準として、それに対してQuarternionBがどれほど離れているかを演算する
+    *@param A 目標（基準）クォータニオン
+    *@param B 目標に対する変位となるクォータニオン
+    *@return 2つの引数の差分クォータニオン
+**/
 imu::Quaternion  diffQuaterniopn(imu::Quaternion A, imu::Quaternion B){//差分を求める
+    
     imu::Quaternion diff;
     A.normalize();
     diff = A.conjugate() * B;
