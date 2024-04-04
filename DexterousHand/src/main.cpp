@@ -26,7 +26,7 @@
 
 
 HardwareSerial SerialForServo(PC_11,PC_10);//シリアルサーボ用のシリアル通信
-EMG_CALIB myemg(Serial2);
+EMG_CALIB myemg(Serial2,1);
 
 SMS_STS SerialServo;
 Adafruit_BNO055 IMU_arm(55,0x29);//IMUを扱うインスタンスを生成
@@ -165,7 +165,7 @@ void loop(){
   String SoftSerial_str = debug.read_Serial();
 
   if(SoftSerial_str == "calib"){//シリアル通信で""calib""を受信したら、閾値のキャリブレーションを起動する
-    myemg.threshold_calib(judge_0to1, judge_1to2, judge_0to2, n12, n23, n13);
+    myemg.threshold_calib(judge_0to2, n13);
     Serial2.readString();//受信バッファをクリア
     delay(1000);
   }

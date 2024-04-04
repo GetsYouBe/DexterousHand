@@ -17,7 +17,7 @@ void EMG_CALIB::sampling(float& x){
     x /= 100.0;
 }
 
-void EMG_CALIB::threshold_calib(float& j1to3, float& n13){
+void EMG_CALIB::threshold_calib(float& j1to3, float n13){
     float low=0;
     //float mid=0;
     float high=0;
