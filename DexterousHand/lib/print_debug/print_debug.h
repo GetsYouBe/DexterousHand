@@ -15,13 +15,15 @@ class Serial_debug{
         void WebSerialprint(float qw,float qx,float qy,float qz, uint8_t calib_sys, uint8_t calib_gyro, uint8_t calib_accel, uint8_t calib_mag);//シリアル通信でIMUのパラメータを出力
         void WebSerialprint(float ox,float oy,float oz, uint8_t calib_sys, uint8_t calib_gyro, uint8_t calib_accel, uint8_t calib_mag);
         void TimerDebug(String tag);
+        void StopDebug();
+        void StartDebug();
         String read_Serial();
 
     private:
         HardwareSerial* Serial_pointer;
         double timer;
         bool Timer_launch;
-
+        bool ActiveDebug;
 };
 
 
