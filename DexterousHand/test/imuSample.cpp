@@ -1,6 +1,7 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
 #include <utility/imumaths.h>//IMUのライブラリ
+#include <SoftwareSerial.h>
 
 #include <Arduino.h>
 

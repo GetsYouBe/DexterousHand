@@ -1,5 +1,11 @@
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BNO055.h>
+#include <utility/imumaths.h>//IMUのライブラリ
 #include <Arduino.h>
 #include "emg_calib.h"
+
+void code1();
+void code2();
 
 EMG_CALIB emg_1(Serial,1);//Serial
 
